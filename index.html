@@ -1,683 +1,94 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Tucunaré: risco local, conservação global</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Jogo do Fruchi</title>
+<style>
+  html,body{
+    margin:0; height:100%; width:100%;
+    font-family:'Arial',sans-serif;
+  }
+  body{
+    display:flex; justify-content:center; align-items:center;
+    background:linear-gradient(135deg,#2c2c54,#24243e,#302b63);
+    color:#fff;
+  }
 
-  <!-- Fonts: elegante + legível -->
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  /* Tela inicial */
+  #startScreen{
+    text-align:center;
+  }
+  #startScreen h1{
+    font-size:3em;
+    margin-bottom:20px;
+    font-family:'Playfair Display',serif;
+  }
+  .btn{
+    display:inline-block;
+    margin:10px;
+    padding:14px 28px;
+    font-size:1.2em;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:bold;
+    background:linear-gradient(90deg,#51c4d3,#b889ff);
+    color:#000;
+    transition:.2s;
+  }
+  .btn:hover{ transform:scale(1.05); }
 
-  <style>
-    :root{
-      --bg: #0e1116; --surface:#141922; --text:#e7edf5; --muted:#9aa4b2;
-      --primary:#51c4d3; --secondary:#b889ff; --ok:#61d095; --warn:#ffcf66; --danger:#ff6b6b;
-      --border: rgba(255,255,255,.12); --shadow: 0 10px 30px rgba(0,0,0,.35); --radius:18px;
-    }
-    [data-theme="light"]{
-      --bg:#f6f8fc; --surface:#ffffff; --text:#0f172a; --muted:#475569;
-      --border: rgba(0,0,0,.08); --shadow: 0 8px 24px rgba(0,0,0,.12);
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0; background:var(--bg); color:var(--text); font-family:'Inter',system-ui; line-height:1.6}
-    a{color:var(--primary); text-decoration:none}
-    img{max-width:100%; display:block}
-    .container{max-width:1160px; margin:0 auto; padding:0 22px}
-    html{scroll-behavior:smooth}
-
-    /* Top progress bar on scroll */
-    .progress{
-      position: fixed; top:0; left:0; height:4px; width:0%;
-      background: linear-gradient(90deg,var(--primary),var(--secondary));
-      z-index:2000; box-shadow: var(--shadow);
-    }
-
-    /* Navbar */
-    .nav{position:sticky; top:0; z-index:1000; backdrop-filter: blur(10px);
-         background: color-mix(in oklab, var(--bg) 85%, transparent);
-         border-bottom:1px solid var(--border)}
-    .nav-inner{display:flex; align-items:center; justify-content:space-between; padding:14px 0}
-    .brand{display:flex; align-items:center; gap:10px}
-    .brand h1{font-family:'Playfair Display'; font-weight:800; font-size:1.35rem; margin:0}
-    .nav-links{display:flex; gap:12px; flex-wrap:wrap}
-    .nav-links a{padding:8px 12px; border-radius:12px; color:var(--text); font-weight:600}
-    .nav-links a:hover{background: color-mix(in srgb, var(--surface) 90%, transparent)}
-    .nav-actions{display:flex; gap:10px; align-items:center}
-    .toggle{display:flex; gap:8px}
-    .chip{padding:8px 12px; border:1px solid var(--border); border-radius:999px; cursor:pointer; user-select:none; font-weight:700; background:var(--surface)}
-    .chip:hover{filter:brightness(1.05)}
-
-    /* Hero */
-    .hero{position:relative; overflow:hidden}
-    .hero-bg{
-      position:absolute; inset:0; opacity:.28;
-      background-image:url('https://images.unsplash.com/photo-1516375195442-b1c49f3f0b24?q=80&w=1600&auto=format&fit=crop');
-      background-size:cover; background-position:center;
-      animation: floatbg 24s ease-in-out infinite; filter: saturate(1.1) contrast(1.15);
-    }
-    @keyframes floatbg {0%,100%{transform:scale(1.08) translateY(0)}50%{transform:scale(1.12) translateY(-12px)}}
-    /* Canvas particles */
-    canvas#particles{position:absolute; inset:0; pointer-events:none; opacity:.45}
-    .hero-inner{position:relative; padding:90px 0 60px; text-align:center}
-    .eyebrow{color:var(--muted); text-transform:uppercase; letter-spacing:.16em; font-weight:700}
-    .title{
-      font-family:'Playfair Display'; font-weight:800; font-size:clamp(34px,6.5vw,64px);
-      margin:12px 0; line-height:1.08;
-      background: linear-gradient(90deg,#fff, #e3eaff 55%, var(--secondary) 92%);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-    }
-    .subtitle{max-width:820px; margin:0 auto; color:var(--muted)}
-    .cta-row{display:flex; gap:12px; justify-content:center; margin-top:22px; flex-wrap:wrap}
-    .btn{padding:12px 18px; border-radius:14px; font-weight:700; cursor:pointer; border:1px solid var(--border);
-         transition:.25s all; box-shadow: var(--shadow); background:var(--surface); color:var(--text)}
-    .btn.primary{background: linear-gradient(90deg, var(--primary), var(--secondary)); color:#071318}
-    .btn.primary:hover{filter:brightness(1.08)}
-    .btn.ghost:hover{background: color-mix(in srgb, var(--surface) 92%, transparent)}
-
-    /* Sections */
-    section{padding:70px 0}
-    .section-title{font-family:'Playfair Display'; font-weight:800; font-size:clamp(28px,4.8vw,42px); margin:0 0 12px}
-    .section-desc{color:var(--muted); margin-bottom:26px}
-
-    /* Grid + Cards */
-    .grid{display:grid; gap:18px; grid-template-columns:repeat(12, 1fr)}
-    .col-3{grid-column:span 3} .col-4{grid-column:span 4} .col-6{grid-column:span 6} .col-12{grid-column:span 12}
-    @media (max-width:980px){ .col-6,.col-4,.col-3{grid-column:span 12} }
-    .card{background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface) 98%, transparent));
-          border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); position:relative; overflow:hidden}
-    .card h4{font-family:'Playfair Display'; margin:0 0 8px}
-    .badge{display:inline-block; padding:6px 10px; border-radius:999px; font-weight:700; font-size:.85rem}
-    .badge.ok{background:rgba(97,208,149,.15); color:var(--ok)}
-    .badge.warn{background:rgba(255,207,102,.18); color:var(--warn)}
-    .badge.danger{background:rgba(255,107,107,.20); color:var(--danger)}
-
-    /* Accordion */
-    .accordion{border-radius:var(--radius); overflow:hidden; border:1px solid var(--border)}
-    .accordion-item + .accordion-item{border-top:1px solid var(--border)}
-    .acc-btn{width:100%; text-align:left; background: color-mix(in srgb, var(--surface) 95%, transparent);
-             padding:14px 16px; border:0; color:var(--text); font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:space-between}
-    .acc-panel{display:none; padding:16px; background: color-mix(in srgb, var(--surface) 98%, transparent)}
-    .acc-btn span{color:var(--muted); font-weight:600; font-size:.95rem}
-
-    /* Image rows & carousel */
-    .image-row{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
-    @media (max-width:900px){ .image-row{grid-template-columns:1fr 1fr} }
-    @media (max-width:600px){ .image-row{grid-template-columns:1fr} }
-    .img-card{border-radius:16px; overflow:hidden; position:relative}
-    .img-card img{height:220px; width:100%; object-fit:cover}
-    .img-cap{position:absolute; inset:auto 0 0 0; padding:10px 12px; background:linear-gradient(180deg, transparent, rgba(0,0,0,.65)); color:#fff; font-weight:700}
-
-    .carousel{position:relative; border:1px solid var(--border); border-radius:16px; overflow:hidden}
-    .slides{display:flex; transition: transform .5s ease}
-    .slide{min-width:100%; height:280px; background:#000}
-    .slide img{width:100%; height:100%; object-fit:cover}
-    .car-ctrl{position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.35); color:#fff; border:0; padding:10px; cursor:pointer}
-    .prev{left:10px} .next{right:10px}
-
-    /* Timeline */
-    .timeline{position:relative; padding-left:20px}
-    .timeline::before{content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background:var(--border)}
-    .event{margin:14px 0 14px 20px; padding:12px 14px; background: color-mix(in srgb, var(--surface) 96%, transparent); border-radius:12px}
-    .event h5{margin:0 0 4px; font-family:'Playfair Display'}
-
-    /* Quiz */
-    .quiz{background:linear-gradient(180deg, color-mix(in srgb,var(--primary) 16%, transparent), color-mix(in srgb,var(--secondary) 12%, transparent));
-          border-radius:var(--radius); padding:18px; border:1px solid var(--border)}
-    .q{margin-bottom:14px}
-    .q h5{margin:0 0 8px; font-family:'Playfair Display'}
-    .opt{display:flex; gap:10px; flex-wrap:wrap}
-    .opt button{padding:10px 12px; border-radius:12px; border:1px solid var(--border); background: color-mix(in srgb, var(--surface) 95%, transparent); color:var(--text); cursor:pointer; font-weight:700}
-    .opt button:hover{filter:brightness(1.05)}
-    .result{margin-top:8px; color:var(--muted); font-weight:700}
-
-    /* Map toggle */
-    #mapBox{margin-top:16px; border:1px solid var(--border); border-radius:14px; overflow:hidden}
-    #mapImg{height:280px; width:100%; object-fit:cover}
-
-    /* Modal alert (impacto sonoro) */
-    .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1200; backdrop-filter: blur(4px);
-           background: color-mix(in srgb, #000 50%, transparent)}
-    .modal .content{background:var(--surface); border:1px solid var(--border); border-radius:18px; padding:20px; max-width:560px; margin:0 16px; text-align:center; box-shadow:var(--shadow)}
-    .modal .title{font-family:'Playfair Display'; font-size:1.6rem; margin:0 0 6px}
-    .modal .actions{display:flex; gap:10px; justify-content:center; margin-top:14px}
-
-    /* Tooltips */
-    .tip{position:relative}
-    .tip:hover .tiptext{opacity:1; transform:translateY(-6px)}
-    .tiptext{position:absolute; left:50%; transform:translate(-50%,-2px); bottom:calc(100% + 8px); background:var(--surface); color:var(--text);
-             border:1px solid var(--border); border-radius:10px; padding:8px 10px; font-size:.85rem; opacity:0; transition:.25s; white-space:nowrap}
-
-    /* Footer */
-    footer{padding:40px 0 60px; color:var(--muted); text-align:center}
-    .credit{color:var(--muted)}
-
-    /* Reveal on scroll */
-    .reveal{opacity:0; transform:translateY(14px); transition:.6s ease}
-    .reveal.visible{opacity:1; transform:translateY(0)}
-
-    /* Back to top */
-    .to-top{position:fixed; right:18px; bottom:18px; padding:10px 12px; border-radius:12px; border:1px solid var(--border);
-            background:var(--surface); cursor:pointer; display:none; z-index:1000}
-    .to-top.show{display:block}
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      *{animation:none !important; transition:none !important}
-    }
-  </style>
+  /* Tela do jogo (piscar) */
+  #gameScreen{
+    display:none;
+    height:100%; width:100%;
+    justify-content:center; align-items:center;
+    animation: flash 0.1s infinite; /* velocidade do piscar */
+  }
+  @keyframes flash {
+    0%,100% { background:#000; }
+    50%     { background:#fff; }
+  }
+  #gameScreen img{
+    width:65%; max-width:750px; height:auto;
+    display:block;
+  }
+</style>
 </head>
-<body data-theme="dark">
-  <div class="progress" id="progress"></div>
+<body>
 
-  <!-- Navbar -->
-  <nav class="nav">
-    <div class="nav-inner container">
-      <div class="brand">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 14c2-1 4-3 6-3s4 2 6 3 4 1 4 1-2 5-10 5-10-5-10-5 2 0 4-1Z" stroke="currentColor" stroke-width="1.5"/></svg>
-        <h1>Tucunaré • Conservação</h1>
-      </div>
-      <div class="nav-links">
-        <a href="#sobre" class="tip">Sobre<span class="tiptext">Panorama geral</span></a>
-        <a href="#ameacas" class="tip">Ameaças<span class="tiptext">Fatores de risco</span></a>
-        <a href="#impactos" class="tip">Impactos<span class="tiptext">Ecologia e sociedade</span></a>
-        <a href="#regioes" class="tip">Regiões<span class="tiptext">Nativo vs introduzido</span></a>
-        <a href="#acoes" class="tip">Ações<span class="tiptext">O que fazer</span></a>
-        <a href="#galeria" class="tip">Galeria<span class="tiptext">Imagens</span></a>
-        <a href="#linha-do-tempo" class="tip">Linha do tempo<span class="tiptext">História</span></a>
-        <a href="#quiz" class="tip">Quiz<span class="tiptext">Teste-se</span></a>
-        <a href="#envolva-se" class="tip">Envolva-se<span class="tiptext">Participe</span></a>
-      </div>
-      <div class="nav-actions">
-        <div class="toggle">
-          <button id="themeBtn" class="chip">Tema: Escuro</button>
-          <button id="audioBtn" class="chip">Áudio: Ligado</button>
-          <button id="motionBtn" class="chip">Animações: On</button>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Hero -->
-  <header class="hero">
-    <div class="hero-bg" aria-hidden="true"></div>
-    <canvas id="particles" aria-hidden="true"></canvas>
-    <div class="hero-inner container">
-      <div class="eyebrow">Peixe amazônico • Cichla spp.</div>
-      <h2 class="title">Tucunaré: risco local, impacto global</h2>
-      <p class="subtitle">Símbolo dos rios amazônicos. Em algumas áreas enfrenta declínios; em outras, como espécie introduzida, altera ecossistemas. Entenda causas, impactos e soluções.</p>
-      <div class="cta-row">
-        <a href="#sobre" class="btn primary">Explorar</a>
-        <button class="btn ghost" id="alertBtn">Alerta de risco</button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Sobre -->
-  <section id="sobre" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Panorama da extinção e conservação</h2>
-      <p class="section-desc">O tucunaré não é globalmente extinto. Focamos em evitar colapsos regionais e manejar locais onde foi introduzido.</p>
-
-      <div class="grid">
-        <div class="col-6">
-          <div class="card">
-            <h4>Status geral</h4>
-            <span class="badge ok">População ampla (não extinto)</span>
-            <ul>
-              <li><strong>Área nativa:</strong> bacias amazônicas e adjacentes.</li>
-              <li><strong>Diversidade:</strong> várias espécies do gênero Cichla.</li>
-              <li><strong>Importância:</strong> cultural, ecológica, econômica (pesca esportiva).</li>
-            </ul>
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="card">
-            <h4>Alertas locais</h4>
-            <span class="badge warn">Declínios regionais</span>
-            <ul>
-              <li><strong>Pressões:</strong> sobrepesca, poluição, destruição de habitats.</li>
-              <li><strong>Fragmentação:</strong> barragens alteram ambientes de reprodução.</li>
-              <li><strong>Eventos extremos:</strong> secas prolongadas e cheias alteradas.</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="col-12">
-          <div class="accordion">
-            <div class="accordion-item">
-              <button class="acc-btn" aria-expanded="false">Por que “extinção” aqui é risco local? <span>expandir</span></button>
-              <div class="acc-panel"><p>“Extinção do tucunaré” costuma tratar de <strong>populações locais em declínio</strong>, não do desaparecimento global. O foco é recuperar habitats críticos e reduzir pressões regionais.</p></div>
-            </div>
-            <div class="accordion-item">
-              <button class="acc-btn" aria-expanded="false">Introdução fora da área nativa <span>expandir</span></button>
-              <div class="acc-panel"><p>Quando introduzido, o tucunaré pode <strong>predar espécies nativas</strong> e alterar teias tróficas. Nesses locais, buscamos <strong>controle e manejo responsável</strong>.</p></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Ameaças -->
-  <section id="ameacas" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Principais ameaças</h2>
-      <p class="section-desc">Fatores que aumentam o risco de extinções locais.</p>
-
-      <div class="grid">
-        <div class="col-4"><div class="card"><h4>Degradação de habitat</h4><span class="badge danger">Alta prioridade</span><ul>
-          <li><strong>Desmatamento ciliar:</strong> aumenta temperatura e turbidez.</li>
-          <li><strong>Assoreamento:</strong> cobre áreas de reprodução e refúgio.</li>
-          <li><strong>Barramentos:</strong> mudam fluxo e conectividade.</li></ul></div></div>
-        <div class="col-4"><div class="card"><h4>Poluição</h4><span class="badge warn">Crescente</span><ul>
-          <li><strong>Agrotóxicos:</strong> afetam larvas e água.</li>
-          <li><strong>Esgoto:</strong> eutrofização e crises de oxigênio.</li>
-          <li><strong>Metais pesados:</strong> bioacumulação.</li></ul></div></div>
-        <div class="col-4"><div class="card"><h4>Sobrepesca</h4><span class="badge warn">Controlável</span><ul>
-          <li><strong>Esforço excessivo:</strong> pressão na reprodução.</li>
-          <li><strong>Ilegalidade:</strong> redes proibidas.</li>
-          <li><strong>Fiscalização:</strong> cumprir cotas.</li></ul></div></div>
-        <div class="col-4"><div class="card"><h4>Mudanças climáticas</h4><span class="badge warn">Sistêmico</span><ul>
-          <li><strong>Eventos extremos:</strong> secas e cheias atípicas.</li>
-          <li><strong>Temperatura:</strong> estresse térmico e menos O₂.</li>
-          <li><strong>Sinergia:</strong> agrava outros fatores.</li></ul></div></div>
-        <div class="col-4"><div class="card"><h4>Espécies invasoras</h4><span class="badge danger">Impacto alto</span><ul>
-          <li><strong>Introduções:</strong> competição e predação cruzada.</li>
-          <li><strong>Desequilíbrios:</strong> colapsos de comunidades.</li>
-          <li><strong>Manejo:</strong> contenção e monitoramento.</li></ul></div></div>
-        <div class="col-4"><div class="card"><h4>Perda de conectividade</h4><span class="badge warn">Crítica</span><ul>
-          <li><strong>Rotas cortadas:</strong> migração afetada.</li>
-          <li><strong>Ilhas populacionais:</strong> menor diversidade genética.</li>
-          <li><strong>Risco local:</strong> extinções em trechos isolados.</li></ul></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Impactos -->
-  <section id="impactos" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Impactos ecológicos e sociais</h2>
-      <p class="section-desc">O que a queda do tucunaré significa para o ecossistema e para as pessoas.</p>
-
-      <div class="grid">
-        <div class="col-6"><div class="card"><h4>Ecossistema</h4><ul>
-          <li><strong>Teia trófica:</strong> mudanças por perda de predador topo.</li>
-          <li><strong>Controle de presas:</strong> explosões de espécies menores.</li>
-          <li><strong>Equilíbrio:</strong> resiliência dos rios reduzida.</li></ul></div></div>
-        <div class="col-6"><div class="card"><h4>Sociedade</h4><ul>
-          <li><strong>Economia:</strong> queda na pesca esportiva e turismo.</li>
-          <li><strong>Cultura:</strong> perda de símbolos e saberes.</li>
-          <li><strong>Alimentação:</strong> menor diversidade para pesca artesanal.</li></ul></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Regiões -->
-  <section id="regioes" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Regiões: nativas e introduzidas</h2>
-      <p class="section-desc">Diferentes estratégias conforme o contexto ecológico.</p>
-
-      <div class="grid">
-        <div class="col-6"><div class="card"><h4>Área nativa</h4><ul>
-          <li><strong>Amazonas e afluentes:</strong> alta diversidade de Cichla spp.</li>
-          <li><strong>Ambientes preferidos:</strong> águas calmas e várzeas.</li>
-          <li><strong>Proteção:</strong> habitat, qualidade da água e pesca responsável.</li></ul></div></div>
-        <div class="col-6"><div class="card"><h4>Introduções</h4><ul>
-          <li><strong>Fora da área nativa:</strong> pode se tornar invasor.</li>
-          <li><strong>Consequências:</strong> competição/predação sobre espécies locais.</li>
-          <li><strong>Manejo:</strong> controle, contenção e educação.</li></ul></div></div>
-        <div class="col-12">
-          <div class="card">
-            <h4>Mapa interativo (conceitual)</h4>
-            <p class="section-desc">Clique e alterne entre cenários de conservação e controle.</p>
-            <div class="cta-row" style="justify-content:flex-start">
-              <button class="btn ghost" onclick="toggleMap('nativo')">Nativo</button>
-              <button class="btn ghost" onclick="toggleMap('introduzido')">Introduzido</button>
-            </div>
-            <div id="mapBox"><img id="mapImg" alt="Mapa conceitual" src="https://images.unsplash.com/photo-1524085328662-6f99d0f17153?q=80&w=1400&auto=format&fit=crop"/></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Ações -->
-  <section id="acoes" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Ações de conservação</h2>
-      <p class="section-desc">Medidas práticas para reduzir riscos e equilibrar ecossistemas.</p>
-      <div class="grid">
-        <div class="col-4"><div class="card"><h4>Proteção de habitat</h4><ul>
-          <li><strong>Restauração ripária:</strong> replantio de matas ciliares.</li>
-          <li><strong>Corredores aquáticos:</strong> reconectar trechos.</li>
-          <li><strong>Zonas de proteção:</strong> berçários e reprodução.</li></ul></div></div>
-        <div class="col-4"><div class="card"><h4>Gestão da pesca</h4><ul>
-          <li><strong>Defeso:</strong> proteger época de reprodução.</li>
-          <li><strong>Licenciamento:</strong> controlar esforço.</li>
-          <li><strong>Fiscalização:</strong> combater ilegalidade.</li></ul></div></div>
-        <div class="col-4"><div class="card"><h4>Qualidade da água</h4><ul>
-          <li><strong>Saneamento:</strong> reduzir esgoto.</li>
-          <li><strong>Controle de poluentes:</strong> limites e monitoramento.</li>
-          <li><strong>Educação:</strong> boas práticas nas bacias.</li></ul></div></div>
-        <div class="col-6"><div class="card"><h4>Manejo em áreas introduzidas</h4><ul>
-          <li><strong>Controle populacional:</strong> remoção dirigida.</li>
-          <li><strong>Barreiras:</strong> limitar expansão.</li>
-          <li><strong>Monitoramento:</strong> ciência cidadã.</li></ul></div></div>
-        <div class="col-6"><div class="card"><h4>Pesquisa e dados</h4><ul>
-          <li><strong>Genética:</strong> diversidade e conectividade.</li>
-          <li><strong>Ecologia:</strong> dieta, reprodução, movimentos.</li>
-          <li><strong>Modelagem:</strong> cenários de clima e uso do solo.</li></ul></div></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Galeria -->
-  <section id="galeria" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Galeria</h2>
-      <p class="section-desc">Paisagens e habitats que merecem cuidado.</p>
-      <div class="image-row">
-        <div class="img-card"><img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=1400&auto=format&fit=crop" alt="Rio e floresta"/><div class="img-cap">Rios de água preta</div></div>
-        <div class="img-card"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1400&auto=format&fit=crop" alt="Água e reflexos"/><div class="img-cap">Refúgios e margens</div></div>
-        <div class="img-card"><img src="https://images.unsplash.com/photo-1519093557226-1639bb91513b?q=80&w=1400&auto=format&fit=crop" alt="Floresta tropical"/><div class="img-cap">Mata ciliar viva</div></div>
-      </div>
-
-      <div class="carousel" style="margin-top:18px">
-        <div class="slides" id="slides">
-          <div class="slide"><img src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?q=80&w=1600&auto=format&fit=crop" alt="Amanhecer no rio"/></div>
-          <div class="slide"><img src="https://images.unsplash.com/photo-1455218873509-8097305ee378?q=80&w=1600&auto=format&fit=crop" alt="Águas calmas"/></div>
-          <div class="slide"><img src="https://images.unsplash.com/photo-1523741543316-beb7fcf7b8c8?q=80&w=1600&auto=format&fit=crop" alt="Margens verdes"/></div>
-        </div>
-        <button class="car-ctrl prev" aria-label="Anterior" onclick="moveSlide(-1)">‹</button>
-        <button class="car-ctrl next" aria-label="Próximo" onclick="moveSlide(1)">›</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Linha do tempo -->
-  <section id="linha-do-tempo" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Linha do tempo</h2>
-      <p class="section-desc">Como chegamos aqui — e para onde podemos ir.</p>
-      <div class="timeline">
-        <div class="event"><h5>Décadas passadas</h5><p><strong>Expansão humana:</strong> avanço sobre margens, início de barramentos e poluição difusa.</p></div>
-        <div class="event"><h5>Últimos anos</h5><p><strong>Pressões acumuladas:</strong> sobrepesca, eventos extremos de clima, conflitos com espécies introduzidas.</p></div>
-        <div class="event"><h5>Agora</h5><p><strong>Janela de ação:</strong> restaurar, fiscalizar, educar e monitorar com participação social.</p></div>
-        <div class="event"><h5>Futuro desejado</h5><p><strong>Rios resilientes:</strong> populações estáveis e manejo inteligente onde for introduzido.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Quiz -->
-  <section id="quiz" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Quiz rápido</h2>
-      <p class="section-desc">Teste seus conhecimentos e salve seu progresso.</p>
-      <div class="quiz">
-        <div class="q">
-          <h5>O tucunaré é extinto globalmente?</h5>
-          <div class="opt">
-            <button onclick="answer(1,'err')">Sim</button>
-            <button onclick="answer(1,'ok')">Não</button>
-          </div>
-          <div class="result" id="r1"></div>
-        </div>
-        <div class="q">
-          <h5>Qual medida ajuda mais a proteger populações nativas?</h5>
-          <div class="opt">
-            <button onclick="answer(2,'ok')">Restaurar matas ciliares</button>
-            <button onclick="answer(2,'err')">Aumentar esforço de pesca</button>
-          </div>
-          <div class="result" id="r2"></div>
-        </div>
-        <div class="q">
-          <h5>Em áreas introduzidas, o manejo deve…</h5>
-          <div class="opt">
-            <button onclick="answer(3,'ok')">Controlar e conter expansão</button>
-            <button onclick="answer(3,'err')">Estimular novas introduções</button>
-          </div>
-          <div class="result" id="r3"></div>
-        </div>
-        <div id="score" style="margin-top:8px; font-weight:700; color:var(--muted)"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Envolva-se -->
-  <section id="envolva-se" class="reveal">
-    <div class="container">
-      <h2 class="section-title">Como você pode ajudar</h2>
-      <p class="section-desc">Pequenas ações somadas mudam destinos.</p>
-
-      <div class="grid">
-        <div class="col-6"><div class="card"><h4>Na comunidade</h4><ul>
-          <li><strong>Respeite defesos:</strong> época e áreas de reprodução.</li>
-          <li><strong>Evite poluir:</strong> descarte correto e saneamento.</li>
-          <li><strong>Eduque:</strong> compartilhe boas práticas.</li></ul></div></div>
-        <div class="col-6"><div class="card"><h4>Com tecnologia</h4><ul>
-          <li><strong>Apps de monitoramento:</strong> registre avistamentos.</li>
-          <li><strong>Dados abertos:</strong> fortaleça pesquisas.</li>
-          <li><strong>Voluntariado:</strong> mutirões de restauração.</li></ul></div></div>
-      </div>
-
-      <div class="cta-row">
-        <a href="#sobre" class="btn primary">Rever panorama</a>
-        <a href="#galeria" class="btn ghost">Ver paisagens</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Modal de alerta (com áudio intenso) -->
-  <div class="modal" id="modal">
-    <div class="content">
-      <h3 class="title">Alerta: risco local</h3>
-      <p>Em certas regiões, o tucunaré enfrenta pressões capazes de colapsar populações. Proteja habitats, respeite defesos e apoie fiscalização.</p>
-      <div class="actions">
-        <button class="btn primary" onclick="closeModal()">Entendi</button>
-        <button class="btn ghost" onclick="document.getElementById('acoes').scrollIntoView({behavior:'smooth'})">Ver ações</button>
-      </div>
-    </div>
+  <!-- Tela inicial -->
+  <div id="startScreen">
+    <h1>Jogo do Fruchi</h1>
+    <button class="btn" id="startBtn">Iniciar</button>
   </div>
 
-  <!-- Back to top -->
-  <button class="to-top" id="toTop" aria-label="Voltar ao topo">↑ Topo</button>
+  <!-- Tela do jogo -->
+  <div id="gameScreen">
+    <!-- Troque o src pela sua imagem -->
+    <img src="https://static.wikia.nocookie.net/viloes/images/e/e0/Jeff_the_Killer.webp/revision/latest/thumbnail/width/360/height/450?cb=20220603192746&path-prefix=pt-br" alt="Imagem central">
+  </div>
 
-  <!-- Áudio: ambiente e alerta -->
-  <audio id="calmAudio" loop>
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_1b6c3b6e2e.mp3?filename=relaxing-ambient-117397.mp3" type="audio/mpeg">
+  <!-- Áudio (loop) -->
+  <audio id="bgAudio" loop>
+    <!-- Coloque seu arquivo MP3 na mesma pasta do index.html -->
+    <source src="musica.mp3" type="audio/mpeg">
   </audio>
-  <audio id="alertAudio">
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8c4b3e2c2e.mp3?filename=epic-dark-trailer-117398.mp3" type="audio/mpeg">
-  </audio>
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <p class="credit">feito por: fruchifera • site interativo • 2025</p>
-    </div>
-  </footer>
+<script>
+  const startBtn = document.getElementById('startBtn');
+  const startScreen = document.getElementById('startScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const bgAudio = document.getElementById('bgAudio');
 
-  <script>
-    // Preferences
-    const themeBtn = document.getElementById('themeBtn');
-    const audioBtn = document.getElementById('audioBtn');
-    const motionBtn = document.getElementById('motionBtn');
-    const calmAudio = document.getElementById('calmAudio');
-    const alertAudio = document.getElementById('alertAudio');
-    const modal = document.getElementById('modal');
-    const progress = document.getElementById('progress');
-    const toTop = document.getElementById('toTop');
+  startBtn.addEventListener('click', ()=>{
+    startScreen.style.display = 'none';
+    gameScreen.style.display = 'flex';
+    // Toca o som em loop
+    bgAudio.play().catch(()=>{console.log("Clique necessário para liberar áudio")});
+  });
+</script>
 
-    let audioEnabled = JSON.parse(localStorage.getItem('audioEnabled') ?? 'true');
-    let motionEnabled = JSON.parse(localStorage.getItem('motionEnabled') ?? 'true');
-    let theme = localStorage.getItem('theme') ?? 'dark';
-
-    document.body.setAttribute('data-theme', theme);
-    themeBtn.textContent = `Tema: ${theme==='dark' ? 'Escuro' : 'Claro'}`;
-    audioBtn.textContent = `Áudio: ${audioEnabled ? 'Ligado' : 'Desligado'}`;
-    motionBtn.textContent = `Animações: ${motionEnabled ? 'On' : 'Off'}`;
-
-    calmAudio.volume = 0.18; alertAudio.volume = 1.0;
-
-    function tryPlay(audio){
-      audio.play().catch(()=>{ /* espera interação do usuário */ });
-    }
-    // Autoplay após primeira interação
-    window.addEventListener('click', ()=>{ if(audioEnabled){ tryPlay(calmAudio) } }, {once:true});
-
-    themeBtn.addEventListener('click', ()=>{
-      theme = theme==='dark' ? 'light' : 'dark';
-      document.body.setAttribute('data-theme', theme);
-      themeBtn.textContent = `Tema: ${theme==='dark' ? 'Escuro' : 'Claro'}`;
-      localStorage.setItem('theme', theme);
-    });
-
-    audioBtn.addEventListener('click', ()=>{
-      audioEnabled = !audioEnabled;
-      audioBtn.textContent = `Áudio: ${audioEnabled ? 'Ligado' : 'Desligado'}`;
-      localStorage.setItem('audioEnabled', JSON.stringify(audioEnabled));
-      if(!audioEnabled){ calmAudio.pause(); alertAudio.pause(); } else { tryPlay(calmAudio) }
-    });
-
-    motionBtn.addEventListener('click', ()=>{
-      motionEnabled = !motionEnabled;
-      motionBtn.textContent = `Animações: ${motionEnabled ? 'On' : 'Off'}`;
-      localStorage.setItem('motionEnabled', JSON.stringify(motionEnabled));
-      document.documentElement.style.scrollBehavior = motionEnabled ? 'smooth' : 'auto';
-    });
-
-    // Modal + áudio intenso
-    document.getElementById('alertBtn').addEventListener('click', ()=>{
-      modal.style.display = 'flex';
-      if(audioEnabled){
-        calmAudio.pause();
-        alertAudio.currentTime = 0;
-        alertAudio.play();
-      }
-    });
-    function closeModal(){
-      modal.style.display = 'none';
-      if(audioEnabled){
-        alertAudio.pause();
-        tryPlay(calmAudio);
-      }
-    }
-    modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal() });
-
-    // Accordion
-    document.querySelectorAll('.acc-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{
-        const panel = btn.nextElementSibling;
-        const open = panel.style.display === 'block';
-        document.querySelectorAll('.acc-panel').forEach(p=>p.style.display='none');
-        document.querySelectorAll('.acc-btn').forEach(b=>b.setAttribute('aria-expanded','false'));
-        if(!open){ panel.style.display='block'; btn.setAttribute('aria-expanded','true') }
-      });
-    });
-
-    // Quiz with score + storage
-    function answer(id, type){
-      const el = document.getElementById('r'+id);
-      let score = parseInt(localStorage.getItem('quizScore') || '0');
-      if(type==='ok'){
-        el.textContent = '✔️ Correto!';
-        el.style.color = getComputedStyle(document.documentElement).getPropertyValue('--ok');
-        score = Math.min(score + 1, 3);
-      } else {
-        el.textContent = '❌ Reveja as seções acima.';
-        el.style.color = getComputedStyle(document.documentElement).getPropertyValue('--danger');
-      }
-      localStorage.setItem('quizScore', score);
-      document.getElementById('score').textContent = `Progresso: ${score}/3`;
-    }
-    document.getElementById('score').textContent = `Progresso: ${parseInt(localStorage.getItem('quizScore') || '0')}/3`;
-
-    // Map toggle (conceitual)
-    function toggleMap(kind){
-      const img = document.getElementById('mapImg');
-      if(kind==='nativo'){
-        img.src = 'https://images.unsplash.com/photo-1524085328662-6f99d0f17153?q=80&w=1400&auto=format&fit=crop';
-        img.alt = 'Mapa conceitual — área nativa';
-      } else {
-        img.src = 'https://images.unsplash.com/photo-1520975977697-0b4a47c50bfd?q=80&w=1400&auto=format&fit=crop';
-        img.alt = 'Mapa conceitual — áreas introduzidas';
-      }
-    }
-    window.toggleMap = toggleMap; // expose to buttons
-
-    // Carousel
-    let current = 0;
-    function moveSlide(dir){
-      const slides = document.getElementById('slides');
-      const total = slides.children.length;
-      current = (current + dir + total) % total;
-      slides.style.transform = `translateX(-${current*100}%)`;
-    }
-    window.moveSlide = moveSlide;
-
-    // Scroll progress + back to top
-    function onScroll(){
-      const sTop = document.documentElement.scrollTop || document.body.scrollTop;
-      const docH = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const pct = docH ? (sTop/docH)*100 : 0;
-      progress.style.width = pct + '%';
-      toTop.classList.toggle('show', sTop > 400);
-    }
-    window.addEventListener('scroll', onScroll);
-    toTop.addEventListener('click', ()=>window.scrollTo({top:0, behavior: (motionEnabled ? 'smooth':'auto')}));
-
-    // Reveal on scroll
-    const io = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible') } })
-    }, {threshold:.12});
-    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-
-    // Particles (canvas)
-    const canvas = document.getElementById('particles');
-    const ctx = canvas.getContext('2d');
-    let W, H, dots=[];
-    function resize(){
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = document.querySelector('.hero').offsetHeight;
-    }
-    function initDots(){
-      dots = Array.from({length: 64}, ()=>({
-        x: Math.random()*W, y: Math.random()*H,
-        r: Math.random()*2+0.6,
-        vx: (Math.random()-0.5)*0.6,
-        vy: (Math.random()-0.5)*0.6
-      }));
-    }
-    function draw(){
-      if(!motionEnabled){ return }
-      ctx.clearRect(0,0,W,H);
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      dots.forEach(d=>{
-        d.x+=d.vx; d.y+=d.vy;
-        if(d.x<0||d.x>W) d.vx*=-1;
-        if(d.y<0||d.y>H) d.vy*=-1;
-        ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill();
-      });
-      requestAnimationFrame(draw);
-    }
-    window.addEventListener('resize', ()=>{resize(); initDots()});
-    resize(); initDots(); draw();
-
-    // Keyboard shortcuts
-    window.addEventListener('keydown', (e)=>{
-      if(e.key==='t') themeBtn.click();
-      if(e.key==='m') audioBtn.click();
-      if(e.key==='a') motionBtn.click();
-    });
-
-    // Safe focus styles for accessibility
-    document.body.addEventListener('keydown', e=>{
-      if(e.key==='Tab'){ document.body.classList.add('show-focus') }
-    });
-
-    // Start ambient audio if enabled
-    if(audioEnabled){ tryPlay(calmAudio) }
-  </script>
 </body>
 </html>
